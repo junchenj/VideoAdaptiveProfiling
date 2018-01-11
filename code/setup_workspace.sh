@@ -20,5 +20,6 @@ sh install_tensorflow.sh
 
 cd ../darknet
 make
+wget https://pjreddie.com/media/files/yolo.weights
 
 cd $PWD
