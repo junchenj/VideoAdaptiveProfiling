@@ -1,0 +1,298 @@
+#import matplotlib
+#import matplotlib.pyplot as plt
+
+import cv2
+print("CV2 version: "+cv2.__version__)
+import numpy as np
+
+frame = cv2.imread("/home/junchenj/workspace/scripts/frames/out-000001.jpg")
+print frame.shape
+
+
+import os
+import tensorflow as tf
+try:
+    import urllib2 as urllib
+except ImportError:
+    import urllib.request as urllib
+
+from datasets import imagenet
+from nets import inception
+from nets import vgg
+#from preprocessing import inception_preprocessing
+
+from tensorflow.contrib import slim
+
+from datasets import dataset_utils
+
+import sys, getopt, os
+import ntpath
+import time
+
+EXTRACTION_LOG = ""
+IMAGES_FOLDER = ""
+OUTPUT_FILE = ""
+MODEL = ""
+
+opts, args = getopt.getopt(sys.argv[1:],"e:i:o:m:")
+for o, a in opts:
+    if o == '-e':
+        EXTRACTION_LOG = a
+    elif o == '-i':
+        IMAGES_FOLDER = a
+    elif o == '-o':
+        OUTPUT_FILE = a
+    elif o == '-m':
+        MODEL = a
+    else:
+        print("Usage: %s -e extraction -i images -o output -m model" % sys.argv[0])
+        sys.exit()
+if (not EXTRACTION_LOG):
+    print("Missing arguments -e")
+    sys.exit()
+if (not IMAGES_FOLDER):
+    print("Missing arguments -i")
+    sys.exit()
+if (not OUTPUT_FILE):
+    print("Missing arguments -o")
+    sys.exit()
+if (not MODEL):
+    print("Missing arguments -m")
+    sys.exit()
+
+print "***********************************"
+print "Extraction:\t"+EXTRACTION_LOG
+print "Images path:\t"+IMAGES_FOLDER
+print "Output file:\t"+OUTPUT_FILE
+print "Model name:\t"+MODEL
+print "***********************************"
+
+
+def preprocess_for_eval(image, height, width,
+                        central_fraction=0.875, scope=None):
+  with tf.name_scope(scope, 'eval_image', [image, height, width]):
+    start_time = time.time()
+    if image.dtype != tf.float32:
+      image = tf.image.convert_image_dtype(image, dtype=tf.float32)
+    # Crop the central region of the image with an area containing 87.5% of
+    # the original image.
+    if central_fraction:
+      image = tf.image.central_crop(image, central_fraction=central_fraction)
+
+    if height and width:
+      # Resize the image to the specified height and width.
+      image = tf.expand_dims(image, 0)
+      image = tf.image.resize_bilinear(image, [height, width],
+                                       align_corners=False)
+      image = tf.squeeze(image, [0])
+    image = tf.subtract(image, 0.5)
+    image = tf.multiply(image, 2.0)
+    return image
+
+def batch_prediction(image_id_to_path, first_time, sess, logits):
+    print "batch processing: "+str(len(image_id_to_path))
+    image_id_to_predictions = {}
+    image_ids = []
+    count = 0
+    start_time_1 = time.time()
+    for image_id,path in image_id_to_path.iteritems():
+        #start_time = time.time()
+        image_string = open(path, 'rb').read()
+        #print "Step 1: "+str(time.time()-start_time)+" seconds"
+        #start_time = time.time()
+        image = tf.image.decode_jpeg(image_string, channels=3)
+        #print "Step 2: "+str(time.time()-start_time)+" seconds"
+        #start_time = time.time()
+        #processed_image = inception_preprocessing.preprocess_image(image, image_size, image_size, is_training=False)
+        processed_image = preprocess_for_eval(image, image_size, image_size, central_fraction=1.0)
+        #print "Step 3: "+str(time.time()-start_time)+" seconds"
+        #image_np = cv2.imread(path)
+        #image_np = image_np[...,::-1]
+        #processed_image = cv2.resize(image_np, (image_size, image_size), interpolation = cv2.INTER_AREA).astype(np.float32)
+        if count == 0:
+            processed_images = tf.expand_dims(processed_image, 0)
+        else:
+            local_matrix  = tf.expand_dims(processed_image, 0)
+            processed_images = tf.concat([processed_images, local_matrix], 0)
+        image_ids.append(image_id)
+        count = count+1
+    print "Preparation: "+str(time.time()-start_time_1)+" seconds"
+    start_time = time.time()
+    if first_time:
+        if MODEL == 'inception_v1':
+            logits, _ = inception.inception_v1(processed_images, num_classes=1001, is_training=False)
+            start_time = time.time()
+            init_fn = slim.assign_from_checkpoint_fn(
+                os.path.join(checkpoints_dir, 'inception_v1.ckpt'),
+                slim.get_model_variables('InceptionV1'))
+            print "Prediction2.1: "+str(time.time()-start_time)+" seconds"
+        elif MODEL == 'vgg_16':
+            logits, _ = vgg.vgg_16(processed_images, num_classes=1000, is_training=False)
+            start_time = time.time()
+            init_fn = slim.assign_from_checkpoint_fn(
+                os.path.join(checkpoints_dir, 'vgg_16.ckpt'),
+                slim.get_model_variables('vgg_16'))
+            print "Prediction2.1: "+str(time.time()-start_time)+" seconds"
+        start_time = time.time()
+        init_fn(sess)
+        print "Prediction2.2: "+str(time.time()-start_time)+" seconds"
+    else:
+        if MODEL == 'inception_v1':
+            logits, _ = inception.inception_v1(processed_images, num_classes=1001, is_training=False, reuse=True)
+        elif MODEL == 'vgg_16':
+            logits, _ = vgg.vgg_16(processed_images, num_classes=1000, is_training=False)
+    probabilities = tf.nn.softmax(logits)
+    print "Prediction1: "+str(time.time()-start_time)+" seconds"
+
+    start_time = time.time()
+    np_image, probabilities = sess.run([image, probabilities])
+    runtime = time.time()-start_time
+    print "Prediction: "+str(runtime)+" seconds"
+    for k in range(len(image_ids)):
+        image_id = image_ids[k]
+        predictions = []
+        prob = probabilities[k, 0:]
+        sorted_inds = [i[0] for i in sorted(enumerate(-prob), key=lambda x:x[1])]
+        for i in range(5):
+            index = sorted_inds[i]
+            pair = (names[index],  prob[index])
+            predictions.append(pair)
+        image_id_to_predictions[image_id] = predictions
+    return image_id_to_predictions, runtime, sess, logits
+
+PREDICT_BATCH_SIZE = 100
+SUPER_BATCH_SIZE = 100
+
+def process_super_batch(frame_ids, frame_id_to_path, \
+                        frame_id_to_image_ids, image_id_to_path, \
+                        image_id_to_coordinates, output, sess):
+    first_time = True
+    frame_ids_batch = []
+    image_id_to_path_batch = {}
+    logits = None
+    for i in range(len(frame_ids)):
+        frame_id = frame_ids[i]
+        frame_ids_batch.append(frame_id)
+        for j in range(len(frame_id_to_image_ids[frame_id])):
+            image_id = frame_id_to_image_ids[frame_id][j]
+            image_id_to_path_batch[image_id] = image_id_to_path[image_id]
+        if (len(image_id_to_path_batch) < PREDICT_BATCH_SIZE and i+1 < len(frame_ids)) \
+                or len(frame_ids_batch) == 0:
+            continue
+        image_id_to_predictions, runtime, sess, logits = batch_prediction(image_id_to_path_batch, \
+                                                                        first_time, sess, logits)
+        first_time = False
+        for m in range(len(frame_ids_batch)):
+            frame_id = frame_ids_batch[m]
+            frame_path = frame_id_to_path[frame_id]
+            output.write("FrameID="+frame_id+"\n")
+            runtime_per_frame = float(runtime)/float(len(image_id_to_path_batch))\
+                                *float(len(frame_id_to_image_ids[frame_id]))
+            output.write(frame_path+": "+str(runtime_per_frame)+" seconds"+"\n")
+            for n in range(len(frame_id_to_image_ids[frame_id])):
+                image_id = frame_id_to_image_ids[frame_id][n]
+                coordinates = image_id_to_coordinates[image_id]
+                predictions = image_id_to_predictions[image_id]
+                name = predictions[0][0]
+                prob = float(predictions[0][1])
+                #if prob < 0.3:
+                #    continue
+                output.write(name+": "+"{0:.2f}".format(prob*100)+"%\t"+coordinates+"\n")
+        frame_ids_batch = []
+        image_id_to_path_batch = {}
+    
+
+def process(lines, split_index_list, output_file):
+    frame_ids = []
+    frame_id_to_path = {}
+    frame_id_to_image_ids = {}
+    image_id_to_path = {}
+    image_id_to_coordinates = {}
+    for i in range(len(split_index_list)-1):
+        frame_path = lines[split_index_list[i]].rstrip()
+        frame_id = ntpath.basename(frame_path)
+        frame_ids.append(frame_id)
+        frame_id_to_path[frame_id] = frame_path
+        num_images = split_index_list[i+1]-split_index_list[i]-1
+        image_ids = []
+        for j in range(num_images):
+            line = lines[split_index_list[i]+j+1]
+            fields = line.rstrip().split("\t")
+            image_path = fields[0]
+            image_id = ntpath.basename(image_path)
+            coordinates = fields[1]+"\t"+fields[2]+"\t"+fields[3]+"\t"+fields[4]
+            image_path = os.path.join(IMAGES_FOLDER,image_id)
+            image_id_to_path[image_id] = image_path
+            image_id_to_coordinates[image_id] = coordinates
+            image_ids.append(image_id)
+        frame_id_to_image_ids[frame_id] = image_ids
+        if (len(image_id_to_path) < SUPER_BATCH_SIZE and i+1 < len(split_index_list)-1) or len(frame_ids) == 0:
+            continue
+        print frame_id
+        output = open(output_file, "a")
+        if MODEL == 'inception_v1': 
+            tf.Graph().as_default()
+            with tf.Session(graph=tf.Graph()) as sess:
+                with slim.arg_scope(inception.inception_v1_arg_scope()):
+                    process_super_batch(frame_ids, frame_id_to_path, \
+                                        frame_id_to_image_ids, image_id_to_path, \
+                                        image_id_to_coordinates, output, sess)
+        elif MODEL == 'vgg_16':
+            tf.Graph().as_default()
+            with tf.Session(graph=tf.Graph()) as sess:
+                with slim.arg_scope(vgg.vgg_arg_scope()):
+                    process_super_batch(frame_ids, frame_id_to_path, \
+                                        frame_id_to_image_ids, image_id_to_path, \
+                                        image_id_to_coordinates, output, sess)
+        output.close()
+        frame_ids = []
+        frame_id_to_path = {}
+        frame_id_to_image_ids = {}
+        image_id_to_path = {}
+        image_id_to_coordinates = {}
+                
+            
+
+log = open(EXTRACTION_LOG, "r")
+split_index_list = []
+lines = []
+count = 0
+for line in log:
+    if len(line.split("\t")) == 1:
+        split_index_list.append(count)
+    lines.append(line)
+    count += 1
+split_index_list.append(count)
+
+output = open(OUTPUT_FILE, "w")
+output.write("")
+output.close()
+
+model_to_url = {
+                'inception_v1': 'inception_v1_2016_08_28', \
+                'vgg_16': 'vgg_16_2016_08_28'}
+model_to_image_size = {
+                'inception_v1': inception.inception_v1.default_image_size, \
+                'vgg_16': vgg.vgg_16.default_image_size}
+
+#url = "http://download.tensorflow.org/models/inception_v1_2016_08_28.tar.gz"
+
+url = "http://download.tensorflow.org/models/"+model_to_url[MODEL]+".tar.gz"
+checkpoints_dir = '/tmp/checkpoints'
+
+if not tf.gfile.Exists(checkpoints_dir):
+    tf.gfile.MakeDirs(checkpoints_dir)
+
+dataset_utils.download_and_uncompress_tarball(url, checkpoints_dir)
+#image_size = inception.inception_v1.default_image_size
+image_size = model_to_image_size[MODEL]
+names = imagenet.create_readable_names_for_imagenet_labels()
+
+#with tf.Session(graph=tf.Graph()) as sess:
+#    with slim.arg_scope(inception.inception_v1_arg_scope()):
+#        tf.Graph().as_default()
+global_start_time = time.time()
+process(lines, split_index_list, OUTPUT_FILE)
+print "Prediction: "+str(time.time()-global_start_time)+" seconds"
+
+ 
