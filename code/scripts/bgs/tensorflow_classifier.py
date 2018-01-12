@@ -40,12 +40,13 @@ import StringIO
 from six.moves import urllib
 import tarfile
 
-EXTRACTION_LOG = ""
-IMAGES_FOLDER = ""
-OUTPUT_FILE = ""
-MODEL = ""
+EXTRACTION_LOG = None
+IMAGES_FOLDER = None
+OUTPUT_FILE = None
+MODEL = None
+SAMPLING = None
 
-opts, args = getopt.getopt(sys.argv[1:],"e:i:o:m:")
+opts, args = getopt.getopt(sys.argv[1:],"e:i:o:m:r:")
 for o, a in opts:
     if o == '-e':
         EXTRACTION_LOG = a
@@ -55,20 +56,25 @@ for o, a in opts:
         OUTPUT_FILE = a
     elif o == '-m':
         MODEL = a
+    elif o == '-r':
+        SAMPLING = float(a)
     else:
-        print("Usage: %s -e extraction -i images -o output -m model" % sys.argv[0])
+        print("Usage: %s -e extraction -i images -o output -m model -r sampling" % sys.argv[0])
         sys.exit()
-if (not EXTRACTION_LOG):
+if (EXTRACTION_LOG is None):
     print("Missing arguments -e")
     sys.exit()
-if (not IMAGES_FOLDER):
+if (IMAGES_FOLDER is None):
     print("Missing arguments -i")
     sys.exit()
-if (not OUTPUT_FILE):
+if (OUTPUT_FILE is None):
     print("Missing arguments -o")
     sys.exit()
-if (not MODEL):
+if (MODEL is None):
     print("Missing arguments -m")
+    sys.exit()
+if (SAMPLING is None):
+    print("Missing arguments -r")
     sys.exit()
 
 print "***********************************"
@@ -76,6 +82,7 @@ print "Extraction:\t"+EXTRACTION_LOG
 print "Images path:\t"+IMAGES_FOLDER
 print "Output file:\t"+OUTPUT_FILE
 print "Model name:\t"+MODEL
+print "Sample rate;\t"+str(SAMPLING)
 print "***********************************"
 
 model_to_url = {
@@ -221,18 +228,24 @@ def prediction_basic(processed_images, model, frame, sess):
     start_time = time.time()
     num_classes = model_to_num_classes[model]
     network_fn = nets_factory.get_network_fn(model, num_classes, is_training=False)
+    print "Prediction2.1: "+str(time.time()-start_time)+" seconds"
+    start_time = time.time()
     logits, _ = network_fn(processed_images)
+    print "Prediction2.2: "+str(time.time()-start_time)+" seconds"
+    start_time = time.time()
     init_fn = slim.assign_from_checkpoint_fn(
         os.path.join(checkpoints_dir, model_to_checkpoint_name[model]),
         slim.get_model_variables())
-    print "Prediction2.1: "+str(time.time()-start_time)+" seconds"
+    print "Prediction2.3: "+str(time.time()-start_time)+" seconds"
     start_time = time.time()
     init_fn(sess)
-    print "Prediction2.2: "+str(time.time()-start_time)+" seconds"
+    print "Prediction2.4: "+str(time.time()-start_time)+" seconds"
+    start_time = time.time()
     probabilities = tf.nn.softmax(logits)
+    print "Prediction2.5: "+str(time.time()-start_time)+" seconds"
 
     start_time = time.time()
-    np_image, probabilities = sess.run([frame, probabilities])
+    probabilities = sess.run(probabilities)
     runtime = time.time()-start_time
     print "Prediction: "+str(runtime)+" seconds"
     return probabilities, runtime
@@ -327,7 +340,6 @@ def process_super_batch(frame_ids, frame_id_to_path, frame_id_to_image_ids, imag
     with tf.Session(graph=tf.Graph()) as sess:
         image_id_to_predictions, runtime = batch_prediction(frame_id_to_path, frame_id_to_image_ids,\
                                                             image_id_to_coordinates, model, sess)
-        tf.reset_default_graph()
     for m in range(len(frame_ids)):
         frame_id = frame_ids[m]
         frame_path = frame_id_to_path[frame_id]
@@ -388,6 +400,22 @@ def process(lines, split_index_list, output_file, model):
         image_id_to_path = {}
         image_id_to_coordinates = {}
 
+def sampling_frames(lines, split_index_list, sampling):
+    new_lines = []
+    new_split_index_list = []
+    stride = int(1.0/sampling)
+    for i in range(len(split_index_list)-1):
+        if i % stride != 0:
+            continue
+        new_split_index_list.append(len(new_lines))
+        new_lines.append(lines[split_index_list[i]])
+        num_images = split_index_list[i+1]-split_index_list[i]-1
+        for j in range(num_images):
+            line = lines[split_index_list[i]+j+1]
+            new_lines.append(line)
+    new_split_index_list.append(len(new_lines))
+    return new_lines, new_split_index_list
+
 def download_and_uncompress_tarball(tarball_url, dataset_dir):
   """Downloads the `tarball_url` and uncompresses it locally.
   Args:
@@ -417,6 +445,8 @@ for line in log:
     lines.append(line)
     count += 1
 split_index_list.append(count)
+
+lines, split_index_list = sampling_frames(lines, split_index_list, SAMPLING)
 
 output = open(OUTPUT_FILE, "w")
 output.write("")

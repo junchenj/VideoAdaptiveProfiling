@@ -71,6 +71,14 @@ print "Image size:\t"+str(SIZE)
 print "Frame rate:\t"+str(SAMPLING)
 print "***********************************"
 
+model_to_fullname = { \
+                    'faster_rcnn_nas':          'faster_rcnn_nas_coco_2017_11_08', \
+                    'faster_rcnn_resnet101':    'faster_rcnn_resnet101_coco_2017_11_08', \
+                    'faster_rcnn_inception_v2': 'faster_rcnn_inception_v2_coco_2017_11_08', \
+                    'ssd_mobilenet_v1':         'ssd_mobilenet_v1_coco_2017_11_17'
+                    }
+MODEL_NAME = model_to_fullname[MODEL_NAME]
+
 sys.path.append(PATH_TO_TF_MODELS+"/research/object_detection")
 
 from utils import label_map_util
@@ -182,7 +190,7 @@ PATH_TO_LABELS = os.path.join(PATH_TO_TF_MODELS+"/research/object_detection/data
 NUM_CLASSES = 90
 
 opener = urllib.request.URLopener()
-opener.retrieve(DOWNLOAD_BASE + MODEL_FILE, MODEL_FILE)
+opener.retrieve(DOWNLOAD_BASE + MODEL_NAME + '.tar.gz', MODEL_FILE)
 tar_file = tarfile.open(MODEL_FILE)
 for file in tar_file.getmembers():
   file_name = os.path.basename(file.name)
@@ -204,7 +212,7 @@ category_index = label_map_util.create_category_index(categories)
 TEST_IMAGE_PATHS = []
 for filename in os.listdir(PATH_TO_TEST_IMAGES_DIR):
         if filename.endswith('.jpg'):
-                TEST_IMAGE_PATHS.append(PATH_TO_TEST_IMAGES_DIR+filename)
+                TEST_IMAGE_PATHS.append(os.path.join(PATH_TO_TEST_IMAGES_DIR, filename))
 TEST_IMAGE_PATHS.sort()
 
 output = open(OUTPUT_FILE, "w")
@@ -233,6 +241,7 @@ with detection_graph.as_default():
             if count % 50 == 0:
                 print '======'+MODEL_NAME+': '+str(i)+'/'+str(len(TEST_IMAGE_PATHS))
             image_path = TEST_IMAGE_PATHS[i]
+            print image_path
             image = cv2.imread(image_path)
             image = image[...,::-1]
             height, width = image.shape[:2]

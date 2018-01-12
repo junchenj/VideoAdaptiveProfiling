@@ -1,4 +1,5 @@
-for model in nasnet_large resnet_v1_101 resnet_v1_50 inception_v2 mobilenet_v1; do
+#for model in nasnet_large resnet_v1_101 resnet_v1_50 inception_v2 mobilenet_v1; do
+for model in inception_resnet_v2 resnet_v1_101 resnet_v1_50 inception_v2 mobilenet_v1; do
     echo "########### START "${model}" ##############"
     python tensorflow_classifier.py -e ~/workspace/scripts/bgs/output_new/log.txt -i ~/workspace/scripts/bgs/output_new/images/ -o ~/workspace/scripts/bgs/output_new/predictions.txt -m $model > log_${model}.txt
     echo "########### END "${model}" ##############"

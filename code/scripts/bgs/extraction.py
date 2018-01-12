@@ -4,34 +4,41 @@ print("CV2 version: "+cv2.__version__)
 import sys, getopt, os
 import ntpath
 
-FRAMES_PATH = ""
-OUTPUT_PATH = ""
+FRAMES_PATH = None
+OUTPUT_PATH = None
+MIN_AREA = None
 
-opts, args = getopt.getopt(sys.argv[1:],"f:o:")
+opts, args = getopt.getopt(sys.argv[1:],"f:o:m:")
 for o, a in opts:
     if o == '-f':
         FRAMES_PATH = a
     elif o == '-o':
 	OUTPUT_PATH = a
+    elif o == '-m':
+        MIN_AREA = float(a)
     else:
-        print("Usage: %s -f input -o output" % sys.argv[0])
+        print("Usage: %s -f input -o output -m minarea" % sys.argv[0])
         sys.exit()
-if (not FRAMES_PATH):
+if (FRAMES_PATH is None):
     print("Missing arguments -f")
     sys.exit()
-if (not OUTPUT_PATH):
+if (OUTPUT_PATH is None):
     print("Missing arguments -o")
+    sys.exit()
+if (MIN_AREA is None):
+    print("Missing arguments -m")
     sys.exit()
 
 print "***********************************"
 print "Frames path:\t"+FRAMES_PATH
 print "Output path:\t"+OUTPUT_PATH
+print "Minim area:\t"+str(MIN_AREA)
 print "***********************************"
 
 FRAME_PATH_LIST = []
 for filename in os.listdir(FRAMES_PATH):
     if filename.endswith('.jpg'):
-        FRAME_PATH_LIST.append(FRAMES_PATH+filename)
+        FRAME_PATH_LIST.append(os.path.join(FRAMES_PATH,filename))
 FRAME_PATH_LIST.sort()
 
 index = 0
@@ -53,13 +60,12 @@ while(index < len(FRAME_PATH_LIST)):
     #ret, frame = cap.read()
     frame_id = ntpath.basename(FRAME_PATH_LIST[index])
     frame_name, ext = os.path.splitext(frame_id)
-    print FRAME_PATH_LIST[index]
     frame = cv2.imread(FRAME_PATH_LIST[index])
 
     [total_height,total_width,color] = frame.shape
     total_height = float(total_height)
     total_width = float(total_width)
-    MinBoxArea = int(total_height*total_width*1.0/100.0)
+    MinBoxArea = int(total_height*total_width*MIN_AREA)
     fgmask = fgbg.apply(frame)
     ret,th1 = cv2.threshold(fgmask,25,255,cv2.THRESH_BINARY)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(10,10))
@@ -99,7 +105,8 @@ while(index < len(FRAME_PATH_LIST)):
                     "\t"+"{:.6f}".format(w/total_width)+\
                     "\t"+"{:.6f}".format(h/total_height)+"\n")
         count += 1
-    print "index="+str(index)+" count="+str(count)+" minArea="+str(MinBoxArea)
+    if index % 30 == 1:
+        print "index="+str(index)+" "+FRAME_PATH_LIST[index]+" count="+str(count)+" minArea="+str(MinBoxArea)
     
     k = cv2.waitKey(30) & 0xff
     if k == 27:
