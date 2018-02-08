@@ -74,6 +74,7 @@ print "***********************************"
 model_to_fullname = { \
                 'faster_rcnn_nas':                      'faster_rcnn_nas_coco_2017_11_08', \
                 'faster_rcnn_inception_resnet':         'faster_rcnn_inception_resnet_v2_atrous_coco_2017_11_08', \
+                'faster_rcnn_inception_resnet_lowproposals': 'faster_rcnn_inception_resnet_v2_atrous_lowproposals_coco_2017_11_08', \
                 'faster_rcnn_resnet101':                'faster_rcnn_resnet101_coco_2017_11_08', \
                 'rfcn_resnet101':                       'rfcn_resnet101_coco_2017_11_08', \
                 'faster_rcnn_resnet50':                 'faster_rcnn_resnet50_coco_2017_11_08', \
@@ -88,6 +89,8 @@ sys.path.append(PATH_TO_TF_MODELS+"/research/object_detection")
 
 from utils import label_map_util
 from utils import visualization_utils as vis_util
+import collections
+
 
 def detect(image, sess):
     predictions = []
@@ -105,23 +108,8 @@ def detect(image, sess):
 #    print("found "+str(len(boxes[0]))+" objects in "+str(time.time()-start_time)+" seconds\n")
 
     runtime = time.time()-start_time
-    for j in range(len(boxes[0])):
-        if scores[0][j] > 0.1:
-            minX=boxes[0][j][1]*img_width
-            minY=boxes[0][j][0]*img_height
-            w = boxes[0][j][3]*img_width-boxes[0][j][1]*img_width
-            h = boxes[0][j][2]*img_height-boxes[0][j][0]*img_height
-            name = category_index[classes[0][j]]['name']
-            pr = scores[0][j]
-            x = minX/img_width
-            y = minY/img_height
-            w = w/img_width
-            h = h/img_height
-            prediction = (name, pr, x, y, w, h)
-            predictions.append(prediction)
     print(" takes "+str(runtime)+" seconds")
-    return predictions, runtime
-'''
+    '''
     # Visualization of the results of a detection.
     IMAGE_SIZE = (12, 8)
     vis_util.visualize_boxes_and_labels_on_image_array(
@@ -136,10 +124,31 @@ def detect(image, sess):
     plt.figure(figsize=IMAGE_SIZE)
     plt.imshow(image)
     plt.show()
-'''    
+    '''
+    return boxes, scores, classes, num, runtime
+    '''
+    for j in range(len(boxes[0])):
+        if scores[0][j] > 0.1:
+            minX=boxes[0][j][1]*img_width
+            minY=boxes[0][j][0]*img_height
+            w = boxes[0][j][3]*img_width-boxes[0][j][1]*img_width
+            h = boxes[0][j][2]*img_height-boxes[0][j][0]*img_height
+            name = category_index[classes[0][j]]['name']
+            pr = scores[0][j]
+            x = minX/img_width
+            y = minY/img_height
+            w = w/img_width
+            h = h/img_height
+            prediction = (name, pr, x, y, w, h)
+            predictions.append(prediction)
+    return predictions, runtime
+    '''
 
 def detect_cropping(image, sess, target_size, model_default_size):
-    predictions_global = []
+    boxes_global = None
+    scores_global = None
+    classes_global = None
+    num_global = 0
     runtime_global = 0
     img_height, img_width = image.shape[:2]
     new_w = target_size
@@ -158,11 +167,10 @@ def detect_cropping(image, sess, target_size, model_default_size):
             y_crop = j*step_len_h
             w_crop = default_w
             h_crop = default_h
-            #print str(x_crop)+", "+str(y_crop)+", "+str(w_crop)+", "+str(h_crop)
-            #print "resize:\t"+str(image_resized.shape)
             image_cropped = image_resized[y_crop:y_crop+h_crop, x_crop:x_crop+w_crop]
-            #print "croped:\t"+str(image_cropped.shape)
-            predictions, runtime = detect(image_cropped, sess)
+            #predictions, runtime = detect(image_cropped, sess)
+            boxes, scores, classes, num, runtime = detect(image_cropped, sess)
+            '''
             for prediction in predictions:
                 name = prediction[0]
                 pr = prediction[1]
@@ -177,7 +185,28 @@ def detect_cropping(image, sess, target_size, model_default_size):
                 prediction_global = (name, pr, x_global, y_global, w_global, h_global)
                 predictions_global.append(prediction_global)
             runtime_global = runtime_global+runtime
-    return predictions_global, runtime_global
+            '''
+            for j in range(len(boxes[0])):
+                boxes[0][j][1] = (boxes[0][j][1]*w_crop+x_crop)/new_w
+                boxes[0][j][3] = (boxes[0][j][3]*w_crop+x_crop)/new_w
+                boxes[0][j][0] = (boxes[0][j][0]*h_crop+y_crop)/new_h
+                boxes[0][j][2] = (boxes[0][j][2]*h_crop+y_crop)/new_h
+            if boxes_global is None:
+                boxes_global = boxes
+            else:
+                boxes_global = np.concatenate((boxes_global, boxes), axis=1)
+            if scores_global is None:
+                scores_global = scores
+            else:
+                scores_global = np.concatenate((scores_global, scores), axis=1)
+            if classes_global is None:
+                classes_global = classes
+            else:
+                classes_global = np.concatenate((classes_global, classes), axis=1)
+            num_global = num_global+num
+            runtime_global = runtime_global+runtime
+    #return predictions_global, runtime_global
+    return boxes_global, scores_global, classes_global, num_global, runtime_global
 
 
 # What model to download.
@@ -185,22 +214,33 @@ def detect_cropping(image, sess, target_size, model_default_size):
 MODEL_FILE = MODEL_NAME + '.tar.gz'
 DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
 
-# Path to frozen detection graph. This is the actual model that is used for the object detection.
-PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
-
 # List of the strings that is used to add correct label for each box.
 #PATH_TO_LABELS = os.path.join('models/research/object_detection/data', 'mscoco_label_map.pbtxt')
 PATH_TO_LABELS = os.path.join(PATH_TO_TF_MODELS+"/research/object_detection/data", 'mscoco_label_map.pbtxt')
-
 NUM_CLASSES = 90
 
-opener = urllib.request.URLopener()
-opener.retrieve(DOWNLOAD_BASE + MODEL_NAME + '.tar.gz', MODEL_FILE)
-tar_file = tarfile.open(MODEL_FILE)
-for file in tar_file.getmembers():
-  file_name = os.path.basename(file.name)
-  if 'frozen_inference_graph.pb' in file_name:
-    tar_file.extract(file, os.getcwd())
+#PATH_TO_CKPT = '/home/junchenj/VideoAdaptiveProfiling/code/scripts/tf/resized_'+str(SIZE)+'/'+ 'frozen_inference_graph.pb'
+
+
+NEW_CKPT_DIR = "ResizedModel_"+MODEL_NAME+"_"+str(SIZE)
+if (os.path.isdir(NEW_CKPT_DIR)):
+    print "================== Config already exist ================"
+else:
+    print "================== Creating new config ================"
+    # Path to frozen detection graph. This is the actual model that is used for the object detection.
+    #PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
+    #opener = urllib.request.URLopener()
+    #opener.retrieve(DOWNLOAD_BASE + MODEL_NAME + '.tar.gz', MODEL_FILE)
+    #tar_file = tarfile.open(MODEL_FILE)
+    #for file in tar_file.getmembers():
+    #  file_name = os.path.basename(file.name)
+    #  tar_file.extract(file, os.getcwd())
+    #  if 'frozen_inference_graph.pb' in file_name:
+    #    tar_file.extract(file, os.getcwd())
+    os.system("sh create_bp.sh "+str(SIZE)+" "+NEW_CKPT_DIR+" "+MODEL_NAME)
+    os.system("rm -r "+MODEL_NAME+"/")
+    print "================== Created new config ================"
+PATH_TO_CKPT = NEW_CKPT_DIR + '/frozen_inference_graph.pb'
 
 detection_graph = tf.Graph()
 with detection_graph.as_default():
@@ -209,6 +249,7 @@ with detection_graph.as_default():
     serialized_graph = fid.read()
     od_graph_def.ParseFromString(serialized_graph)
     tf.import_graph_def(od_graph_def, name='')
+
 
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
@@ -249,22 +290,51 @@ with detection_graph.as_default():
             print image_path
             image = cv2.imread(image_path)
             image = image[...,::-1]
-            height, width = image.shape[:2]
-            target_size = min(width, SIZE)
-            model_default_size = 400
-            predictions, runtime = detect_cropping(image, sess, target_size, model_default_size)
+            img_height, img_width = image.shape[:2]
+            target_size = min(img_width, SIZE)
+            #model_default_size = 400
+            model_default_size = target_size
+            #predictions, runtime = detect_cropping(image, sess, target_size, model_default_size)
+            boxes, scores, classes, num, runtime = detect_cropping(image, sess, target_size, model_default_size)
             output.write("FrameID="+ntpath.basename(image_path)+"\n")
             output.write(image_path+": "+str(runtime)+" seconds\n")
-            for prediction in predictions:
-                name = prediction[0]
-                pr = prediction[1]
-                x = prediction[2]
-                y = prediction[3]
-                w = prediction[4]
-                h = prediction[5]
+            for j in range(len(boxes[0])):
+                if scores[0][j] < 0.1:
+                    continue
+                minX=boxes[0][j][1]*img_width
+                minY=boxes[0][j][0]*img_height
+                w = boxes[0][j][3]*img_width-boxes[0][j][1]*img_width
+                h = boxes[0][j][2]*img_height-boxes[0][j][0]*img_height
+                name = category_index[classes[0][j]]['name']
+                pr = scores[0][j]
+                x = minX/img_width
+                y = minY/img_height
+                w = w/img_width
+                h = h/img_height
                 output.write(name+": "+"{:.2f}".format(pr*100)+"%"+ \
                     "\t"+"{:.6f}".format(x)+"\t"+"{:.6f}".format(y)+ \
                     "\t"+"{:.6f}".format(w)+"\t"+"{:.6f}".format(h)+"\n")
-
+            # Visualization of the results of a detection.
+            '''
+            IMAGE_SIZE = (9, 6)
+            vis_util.visualize_boxes_and_labels_on_image_array(
+                image,
+                np.squeeze(boxes),
+                np.squeeze(classes).astype(np.int32),
+                np.squeeze(scores),
+                category_index,
+                max_boxes_to_draw=1000000,
+                min_score_thresh=.5,
+                use_normalized_coordinates=True,
+                line_thickness=4)
+            plt.figure(figsize=IMAGE_SIZE)
+            plt.imshow(image)
+            plt.title(MODEL_NAME)
+            plt.show()
+            #os.system("mkdir /home/junchenj/workspace/tmp_resize_"+str(target_size)+"/")
+            #new_image_path = "/home/junchenj/workspace/tmp_resize_"+str(target_size)+"/"+str(i)+".jpg"
+            #print new_image_path
+            #cv2.imwrite(new_image_path, image)
+            '''
         count = count+1
 

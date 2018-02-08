@@ -5,8 +5,8 @@ import cv2
 print("CV2 version: "+cv2.__version__)
 import numpy as np
 
-frame = cv2.imread("/home/junchenj/workspace/scripts/frames/out-000001.jpg")
-print frame.shape
+#frame = cv2.imread("/home/junchenj/workspace/scripts/frames/out-000001.jpg")
+#print frame.shape
 
 
 import os

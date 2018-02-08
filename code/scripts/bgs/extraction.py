@@ -105,7 +105,7 @@ while(index < len(FRAME_PATH_LIST)):
                     "\t"+"{:.6f}".format(w/total_width)+\
                     "\t"+"{:.6f}".format(h/total_height)+"\n")
         count += 1
-    if index % 30 == 1:
+    if index % 30 == 0:
         print "index="+str(index)+" "+FRAME_PATH_LIST[index]+" count="+str(count)+" minArea="+str(MinBoxArea)
     
     k = cv2.waitKey(30) & 0xff
