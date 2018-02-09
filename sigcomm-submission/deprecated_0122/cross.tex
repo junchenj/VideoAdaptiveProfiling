@@ -1,0 +1,93 @@
+\section{Cross-video inference}
+\label{sec:cross}
+
+The second technique in \name is cross-video inference: 
+it improves the performance by amortizing the reprofiling cost across a 
+potentially large amount of video feeds.
+At a high level, the intuition is that if two video feeds share similar 
+characteristics on which the resource-accuracy tradeoff, and thus the best 
+configuration, is dependent, they are likely to share the best configuration.
+
+\mypara{Similarity between video feeds}
+In general, video feeds from different cameras have little in common in their
+video content. 
+But as we hinted before, the relationship between configurations and the 
+resulting inference accuracy depends on several high-level characteristics 
+other than the content itself, and these characteristics are much more likely
+to resemble across multiple video feeds. 
+For instance, if two video feeds contain objects moving at similar speeds,
+they will likely to share the same ideal frame rate. 
+Such scenarios are abound in reality. 
+Traffic videos in close vicinity often show vehicles appear at similar 
+speeds, in similar size, and with similar brightness/contrast, all of which
+bear significant impact on the value of best configurations.
+
+Figure~\ref{??} shows real-world examples where video feeds with similar 
+characteristics share almost identical resource-accuracy tradeoffs of certain
+knobs, and therefore, their best configurations.
+
+\jc{insert the figures here.}
+
+\mypara{Grouping of video feeds}
+If we know when and which video feeds have identical resource-accuracy 
+tradeoffs, we can simply apply the best configuration learned on one video
+feed to other video feeds, and get a linear reduction in profiling cost. 
+In practice, however, the relationship between 
+configuration and the resulting accuracy can be very complex (partly due to
+a lack of interpretability of the deep \nn models), so it is difficult to 
+predict whether two videos should share best configuration.
+Instead, \name identifies similar cameras by profiling the performance of 
+the same set of cheap configuration on all video feeds, and we use whether 
+two videos show similar performance on these configurations to indicate 
+whether they share the same best configuration.
+We present this idea in Algorithm~\ref{alg:??}. 
+\jc{explain the algorithm a bit}
+\jc{add what cheap configurations to use}
+
+
+\begin{algorithm}[t!]
+\small
+	\DontPrintSemicolon
+	\SetKwFunction{Grouping}{Group}
+    \SetKwProg{Fn}{Function}{:}{}
+	\KwIn{$\{X_1,\dots,X_n\}$ where the $X_i$ is the set of frames in video $M_i$ that are under profiling, two lists of configurations $C=(c_j)_j$ and $C'=(c_j')_j$ where $c_j'$ is more expensive than $c_j$, and $\beta$ is the max difference in accuracy between applying the same configuration to two videos in one group.}
+    \KwOut{A set of groups of similar video feeds}
+    \Fn{\Grouping{$\{X_1,\dots,X_n\},\beta, C, C'$}}{
+        \tcc{\small{Start with a group of all videos.}}
+        $Groups=\{\{X_1,\dots,X_n\}\}$\\
+        \ForEach{$c_j\in C$}{
+            \ForEach{$G \in Groups$}{
+                $\{G_1,G_2,\dots\}\leftarrow$ a partition of $G$ such that
+                $|F(X,c_j,c_j')-F(X',c_j,c_j')| < \beta$ for any $X,X'\in G_i$\\
+                $Groups\leftarrow Groups\setminus\{G\}$\\
+                $Groups\leftarrow Groups\cup \{G_1,G_2,\dots\}$
+            }
+        }
+        \Return{$Groups$}
+    }
+%     \Fn{\OnlineProfiling{$\{M_1,\dots,M_n\}, C, \alpha$}}{
+%         \ForEach{$j$-th $T$-second time window $T_j$}{
+%             $Groups\leftarrow$\Grouping{$\{X_{M_1,t_j},\dots,X_{M_n,t_j}\}, \beta, C, C'$}\\
+%             \ForEach{$G\in Groups$}{
+%                 $X_{M,t_j}\leftarrow$ a random element in $G$\\
+%                 $\hat{c}_{M,t_j}\leftarrow$\ProfilingUnit{$X_{M,t_j},C,\alpha$}\\
+%                 \ForEach{$X_{M_i,t_j}\in G\setminus X_{M,t_j}$}{
+%                     \If{$F(X_{M_i,t_j},\hat{c}_{M,t_j},c*)\geq\alpha$}{
+%                         $\hat{c}_{M_i,t_j}\leftarrow\hat{c}_{M,t_j}$
+%                     }\Else{
+%                         $\hat{c}_{M_i,T_j}\leftarrow$ \ProfilingUnit{$X_{M,t_j},C,\alpha$}
+%                     }
+%                 }
+%             }
+%         }
+%         \Return{$\hat{c}_{M_i,T_j}$ for all $M_i$ and $T_j$}
+% 	}
+	\caption{Cross-video grouping.}
+	\label{alg:policy3}
+\end{algorithm}
+
+
+Figure~\ref{fig:??} shows an example of the improvement brought by cross-camera
+inference.
+
+\jc{insert the figures here.}

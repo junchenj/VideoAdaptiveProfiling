@@ -1,0 +1,60 @@
+\section{Related work}
+\label{sec:related}
+
+\mypara{Video processing optimization}
+Several previous papers have considered optimizing video processing pipelines by either adjusting the configuration knobs or training specialized NN models.
+VideoStar~\cite{videostar} first profiles each video query running in a cluster and then adjusts its configuration to achieve the right balance between accuracy, processing delay, and resource demand.
+NoScope~\cite{noscope}, MCDNN~\cite{mcdnn}, and Focus~\cite{focus} all process streaming or offline video using various NNs to detect objects, and recognize people and text.
+One of the core techniques in all three papers is training specialized NNs based on objects that typically appear in a specific video stream. For example, instead of a NN that can classify across 1000 objects, they train a much smaller (and more efficient) one for the top 20 objects.
+%Both MCDNN and VideoStar adapt video processing in response to changes in workload or available resources by selecting a different configuration on the accuracy-cost spectrum.
+While each of these papers reports significant improvements in accuracy and/or resource consumption, they all profile and optimize the video queries only once at the beginning of the video stream. 
+They do not report how the optimal profiles change over time and do not handle changes in video stream content.
+Two core contributions of \name are demonstrating that optimal configurations indeed change over time and an efficient technique for continuously adapting the profiles.
+
+
+\mypara{Finding optimal configurations}
+\name periodically searches an exponentially large configuration space to find the optimal \nn configuration for a video query.  This is done, at a minimum, for the leader of each spatially-related group of videos. Several recent systems have also faced an exponentially large configuration search space in their problem domains~\cite{ernest,cherrypick,amazon-bandit}. \name differs from these systems in two major ways. First, the optimal configuration for a video is highly non-stationary, requiring frequent (every few seconds) re-profiling that must keep up with a real-time video feed. This puts tremendous pressure on keeping the profiling cost low and finding ways to amortize it. Second, \name reuses optimal configurations across related video feeds. These differences lead to the greedy hill climbing approach we have taken that avoids any computationally expensive modeling. 
+
+%Ernest~\cite{ernest} optimizes the VM size and number of instances used to run a given analytics job (\eg a machine learning algorithm), by first testing it on small samples of its input. It defines a model for job performance and uses optimal experimental design~\cite{optimal-experiment} to suggest training configurations for the model. Optimal experimental design is a statistical technique that chooses experiments to minimize a model's estimation error, but it is wasteful in our context because our goal is to find optimal configurations directly, not develop an accurate model along the way.
+
+\comment{
+- Although Ernest requires only a few datapoints, its focus on modeling performance is overkill, because we don't need to construct a full model of performance, we just need to find the optimal configuration. Given a scarcity of datapoints, we should focus on our direct problem; this is the approach CherryPick takes.
+}
+
+%Cherrypick~\cite{cherrypick} embraces this philosophy and uses Bayesian optimization~\cite{bayesian-mockus} to find an optimal cloud configuration for running an application. Their model of cloud performance has just enough accuracy to quickly discard bad configurations and focus experiments on promising configurations. This approach is more relevant to our problem, but like Ernest, it assumes the optimal configuration is stationary. Our setting is non-stationary, forcing us to re-optimize the configuration frequently, making the modeling effort overly expensive.
+
+\comment{
+- Cherrypick picks the near-optimal cloud configuration for general applications. It uses a Bayesian Optimization framework to model just enough of the performance of cloud configs to weed out the bad ones and focus on the good ones. This framework selects configurations to try that are the most promising, reducing the experimentation cost.
+}
+
+%Hill \etal~\cite{amazon-bandit} optimize the contents of a web page consisting of multiple components each taking one of multiple values. They use a Bayesian model for the reward of each possible layout and train it using a multi-armed bandit algorithm~\cite{mab} called Thompson sampling~\cite{thompson-mab}. To select the next layout to show to a user, they choose the one with highest expected reward, but since the search space is exponential, they use greedy hill climbing to configure each component independently. This hill climbing approach is similar to \name's, but \name exploits more independence structure and monotonicity (\eg fixing other knobs to both high/low default values) and does not explicitly model rewards.
+%the parameters we configure exhibit monotonically increasing/decreasing performance, allowing us to direct the hill climbing more greedily. 
+%Also, Hill \etal update their model once a day, whereas \name re-optimizes every profiling window.
+
+\comment{
+- Compared to these systems, \name has substantially more structure in the relative performance of configurations. In particular, we know that increasing each knob monotonically increases performance. We also 
+}
+
+Ernest~\cite{ernest} uses optimal experimental design~\cite{optimal-experiment} to optimize the VM configuration of a job, while Cherrypick~\cite{cherrypick} uses Bayesian optimization~\cite{bayesian-mockus} to find an optimal cloud configuration for general  applications. Hill \etal~\cite{amazon-bandit} use Thompson sampling~\cite{thompson-mab} to optimize the layout of a multi-component web page; they use greedy hill climbing to select the next layout, similar to \name, but \name exploits more independence structure and monotonicity.  All of these works bound the cost of their configuration search (\eg by adding it as a constraint in the optimization problem), but these still one-time or daily costs paid for the modeling task at hand.
+%Hill \etal only retrain their model once a day, but sample from it in real-time using greedy hill climbing; the 
+%latter cost is similar to the one we pay, except we do not attempt to model the performance of different %configurations. 
+The non-stationary nature of our problem makes modeling expensive, because we must effectively re-learn the model every profiling window. Some bandit algorithms address non-stationary settings (\eg~\cite{bandit-non-stationary}), but these are too inefficient at present.
+%, \eg re-running an optimization over doubling time periods into the past to detect a change in the environment. 
+If a practical bandit or Bayesian approach can be found for non-stationary settings, it would be highly applicable to our problem.
+
+%the parameters we configure exhibit monotonically increasing/decreasing performance, allowing us to direct the hill climbing more greedily. 
+%Also, Hill \etal update their model once a day, whereas \name re-optimizes every profiling window.
+
+
+\comment{
+- Except for the Amazon work, the above papers do a little bit of initial/offline profiling to pick the right configuration, and then run a job or application. Amazon's system runs in real-time for choosing the next page layout (greedy hill climbing), but trains its model daily using the previous day's worth of data.
+}
+
+\comment{
+- contextual bandits need features and also assume stationarity, our environment needs reprofiling often and to be done quickly, so a more adhoc solution. If we are able to reduce the ground truth and reprofiling cost, can make the case for contextual learning. 
+
+- non-stationary bandits stuff
+}
+\comment{
+- Amazon recently presented a scheme for multi-variate whole page optimization where multiple page elements are selected towards a global reward metric. They modeled the interactions between page elements up to quadratic terms and use Thompson sampling (a Bayesian approach) to model the expected rewards for different page layouts. To choose the next layout to try, they use greedy hill climbing to find a page with high expected reward, instead of searching the entire exponential space.
+}

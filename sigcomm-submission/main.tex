@@ -1,0 +1,386 @@
+\documentclass[letterpaper,twocolumn,10pt]{sig-alternate-10pt}
+%\usepackage{epsfig,endnotes}
+%\documentclass[letterpaper,twocolumn,10pt]{article}
+%\usepackage{usenix,epsfig,endnotes}
+%\documentclass[letterpaper,twocolumn]{hotnets16}
+%\documentclass[letterpaper,twocolumn]{hotnets17}
+%\documentclass[sigconf]{acmart}
+\usepackage{epsfig,endnotes}
+
+
+%\usepackage{geometry}
+%\geometry{top=1in}
+
+\usepackage[left=0.75in,right=0.75in,top=0.875in,bottom=0.875in]{geometry}
+
+
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+\setlength{\columnsep}{0.33in}
+
+\usepackage{mathptmx} 
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{bbding}
+
+
+\usepackage[font=bf]{caption}
+\usepackage{quoting}
+\usepackage{csquotes}
+\SetBlockEnvironment{quoting}
+
+
+\usepackage{subfig}
+%\usepackage{subfigure}
+
+
+\usepackage{multirow}
+\usepackage[linesnumbered,noend,boxed]{algorithm2e}
+\setlength{\textfloatsep}{0.2cm}
+
+
+\newcommand{\subparagraph}{} 
+\usepackage[usenames,dvipsnames]{color}
+
+
+\usepackage[compact]{titlesec}
+
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+
+
+\usepackage{times}
+
+
+\usepackage{xspace}
+\usepackage{epsfig} 
+\usepackage{amsmath}
+\usepackage[hyphens]{url}
+\usepackage{amsfonts} 
+
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage[table,xcdraw]{xcolor}
+
+
+\usepackage{listings}
+\usepackage{fancyvrb}
+\usepackage{mathrsfs}
+\usepackage[bordercolor=white,backgroundcolor=gray!30,linecolor=black,colorinlistoftodos]{todonotes}
+\VerbatimFootnotes
+
+
+%\usepackage[hhmmsstime]{datetime}
+\usepackage[12h=false]{scrtime}
+
+
+\usepackage{tablefootnote}
+
+
+\usepackage[normalem]{ulem}
+
+\usepackage{titlesec}
+\usepackage{etoolbox}
+
+\makeatletter
+\patchcmd{\ttlh@hang}{\parindent\z@}{\parindent\z@\leavevmode}{}{}
+\patchcmd{\ttlh@hang}{\noindent}{}{}{}
+\makeatother
+
+
+
+%\setlength{\pdfpagewidth}{8.5in}
+%\setlength{\pdfpageheight}{11in}
+
+
+%\usepackage{mdframed}
+
+
+\newtheorem{theo}{Insight}
+\newenvironment{ftheo}
+{\begin{mdframed}\begin{theo}}
+{\end{theo}\end{mdframed}}
+
+
+%\newcommand{\insightref}[1]{\textbf{Insight}\ref{#1}}
+%\newcounter{insightlabel}
+%\renewcommand{\theinsightlabel}{\textbf{I}}
+%\newenvironment{insight}{
+%\begin{list}{\textbf{Insight}\theinsightlabel:~}{\usecounter{insightlabel}\setlength{\labelwidth}{0pt}\setlength{\labelsep}{0pt}\setlength{\leftmargin}{0in}\noindent\rule{\linewidth}{1pt}\vspace{-9pt}\item \bf \em}}{\\[-7pt]\end{list}\vspace{-11pt}\noindent\rule{\linewidth}{1pt}}
+
+
+%\newcommand{\insightref}[1]{\textbf{Insight }\ref{#1}}
+\newcommand{\insightref}[1]{{Insight }\ref{#1}}
+\newcounter{insightlabel}
+\newcounter{insightnmbr}
+%\renewcommand{\theinsightlabel}{\textbf{\theinsightnmbr}}
+\renewcommand{\theinsightlabel}{{\theinsightnmbr}}
+\newenvironment{insight}{
+\vspace{-0.0cm}
+\begin{list}{\textbf{Insight }\theinsightlabel:~}{\usecounter{insightlabel}\stepcounter{insightnmbr}\setlength{\labelwidth}{0pt}\setlength{\labelsep}{0pt}\setlength{\leftmargin}{0in}\noindent\rule{\linewidth}{1pt}\vspace{-10pt}\item \bf \em}}{\\[-7pt]\end{list}\vspace{-10pt}\noindent\rule{\linewidth}{1pt}}
+
+
+%\newcommand{\impref}[1]{\textbf{Corollary 3.}\ref{#1}}
+\newcommand{\impref}[1]{{Corollary 3.}\ref{#1}}
+\newcounter{implabel}
+\newcounter{impnmbr}
+%\renewcommand{\theimplabel}{\textbf{\theimpnmbr}}
+\renewcommand{\theimplabel}{{\theimpnmbr}}
+\newenvironment{imp}{
+\vspace{-0.0cm}
+\begin{list}{\textbf{Corollary 3.}\theimplabel:~}{\usecounter{implabel}\stepcounter{impnmbr}\setlength{\labelwidth}{0pt}\setlength{\labelsep}{0pt}\setlength{\leftmargin}{0in}\noindent\rule{\linewidth}{1pt}\vspace{-9pt}\item \bf \em}}{\\[-7pt]\end{list}\vspace{-11pt}\noindent\rule{\linewidth}{1pt}}
+
+
+
+
+\newcommand{\tightcaption}[1]{\vspace{-0.12cm}\caption{{\em #1}}\vspace{-0.13cm}}
+%\newcommand{\tightsection}[1]{\vspace{-0.02in}\section{#1}\vspace{-0.03cm}}
+%\newcommand{\tightsubsection}[1]{\vspace{-0.02in}\subsection{#1}\vspace{-0.03cm}}
+\newcommand{\tightsection}[1]{\vspace{-0.08cm}\section{#1}\vspace{-0.08cm}}
+\newcommand{\tightsubsection}[1]{\vspace{-0.08cm}\subsection{#1}\vspace{-0.08cm}}
+%\newcommand{\tightsection}[1]{\vspace{-0.0cm}\section{#1}\vspace{-0.0cm}}
+%\newcommand{\tightsubsection}[1]{\vspace{-0.0cm}\subsection{#1}\vspace{-0.0cm}}
+\newcommand{\tightsubsubsection}[1]{\vspace{-0.01in}\subsubsection{#1}\vspace{-0.01cm}}
+
+
+\newcommand{\eg}{{\it e.g.,}\xspace}
+\newcommand{\ie}{{\it i.e.,}\xspace}
+\newcommand{\etal}{{\it et.~al}\xspace}
+\newcommand{\bigO}{\mathrm{O}}
+
+\hyphenation{pipe-line}
+
+\newcommand{\comment}[1]{}
+\newcounter{note}[section]
+\renewcommand{\thenote}{\thesection.\arabic{note}}
+
+
+\newcommand{\Section}{\S}
+
+
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+
+\newcommand{\fillme}{{\bf XXX}~}
+
+
+\newcommand{\dda}{{CFA}\xspace}
+\newcommand{\system}{{\dda}\xspace}
+\newcommand{\ControlPlane}{{global optimization system}\xspace}
+
+
+%\newcommand{\name}{{TBD}\xspace}
+\newcommand{\ddn}{{DDN}\xspace}
+
+
+\newcommand{\mypara}[1]{\smallskip\noindent{\bf {#1}:}~}
+\newcommand{\myparatight}[1]{\vspace{0.03cm}\noindent{\bf {#1}:}~}
+\newcommand{\myparaq}[1]{\smallskip\noindent{\bf {#1}?}~}
+
+
+\newcommand{\myparaittight}[1]{\smallskip\noindent{\emph {#1}:}~}
+\newcommand{\question}[1]{\smallskip\noindent{\emph{Q:~#1}}\smallskip}
+\newcommand{\myparaqtight}[1]{\smallskip\noindent{\bf {#1}}~}
+
+\newcommand{\sep}{\discretionary{}{}{}}
+
+\newcommand{\vyas}[1]{{\footnotesize\color{red}[VS: #1]}}
+%\newcommand{\is}[1]{{\footnotesize\color{orange}[IS: #1]}}
+%\newcommand{\jc}[1]{{\footnotesize\color{blue}[JC: #1]}}
+%\newcommand{\xil}[1]{{\footnotesize\color{magenta}[XI: #1]}}
+%\newcommand{\hm}[1]{{\footnotesize\color{Maroon}[HM: #1]}}
+%\newcommand{\ai}[1]{{\footnotesize\color{Purple}[TODO: #1]}}
+
+
+%\newcommand{\vyas}[1]{{\footnotesize\color{red}{}}}
+\newcommand{\sid}[1]{{\footnotesize\color{orange}{}}} %[SS: #1]}}}
+\newcommand{\jc}[1]{{\footnotesize\color{blue}{}}} %[JC: #1]}}}
+\newcommand{\newjc}[1]{{\footnotesize\color{blue}}}
+\newcommand{\xil}[1]{{\footnotesize\color{magenta}{}}}
+\newcommand{\hm}[1]{{\footnotesize\color{Maroon}{}}}
+\newcommand{\ai}[1]{{\footnotesize\color{Purple}{}}}
+\newcommand{\ga}[1]{{\footnotesize\color{orange}{}}} %[GA: #1]}}}
+
+\newcommand{\camera}[1]{{\color{black}{#1}}\xspace}
+%\newcommand{\cameraremove}[1]{{\color{blue}{\sout{#1}}}}
+\newcommand{\cameraremove}[1]{{\color{black}{}}\xspace}
+\newcommand{\vyascomment}[1]{{\color{red}{#1}}\xspace}
+\newcommand{\vyasremove}[1]{{\color{red}{}}\xspace}
+
+
+%\newcommand{\new}[1]{\color{purple}{#1} \color{black}}
+\newcommand{\new}[1]{\color{black}{#1} \color{black}}
+\newcommand{\old}[1]{{\color{black}{}}}
+
+
+\newcommand{\name}{{Chameleon}\xspace}
+\newcommand{\nn}{{NN}\xspace}
+
+
+%\newcommand{\seyed}[1]{{\footnotesize\color{blue}[SF: #1]}}
+%\newcommand{\alig}[1]{{\footnotesize\color{BrickRed}[AG: #1]}}
+%\newcommand{\downward}{downward\xspace}
+%\newcommand{\upward}{upward\xspace}
+%\newcommand{\Downward}{Downward\xspace}
+%\newcommand{\Upward}{Upward\xspace}
+
+
+\newcounter{packednmbr}
+
+
+\newenvironment{packedenumerate}{\begin{list}{\thepackednmbr.}{\usecounter{packednmbr}\setlength{\itemsep}{0.5pt}\addtolength{\labelwidth}{-4pt}\setlength{\leftmargin}{\labelwidth}\setlength{\listparindent}{\parindent}\setlength{\parsep}{1pt}\setlength{\topsep}{0pt}}}{\end{list}}
+
+
+\newenvironment{packeditemize}{\begin{list}{$\bullet$}{\setlength{\itemsep}{0.5pt}\addtolength{\labelwidth}{-4pt}\setlength{\leftmargin}{\labelwidth}\setlength{\listparindent}{\parindent}\setlength{\parsep}{1pt}\setlength{\topsep}{0pt}}}{\end{list}}
+
+
+\newenvironment{packedpackeditemize}{\begin{list}{$\bullet$}{\setlength{\itemsep}{0.5pt}\addtolength{\labelwidth}{-4pt}\setlength{\leftmargin}{\labelwidth}\setlength{\listparindent}{\parindent}\setlength{\parsep}{1pt}\setlength{\topsep}{0pt}}}{\end{list}}
+
+
+\newenvironment{packedtrivlist}{\begin{list}{\setlength{\itemsep}{0.2pt}\addtolength{\labelwidth}{-4pt}\setlength{\leftmargin}{\labelwidth}\setlength{\listparindent}{\parindent}\setlength{\parsep}{1pt}\setlength{\topsep}{0pt}}}{\end{list}}
+
+
+\newtheorem{policy}{Policy}
+
+%%%%%%%%%%%%
+% Document %
+%%%%%%%%%%%%
+%\input{macros}
+
+\begin{document}
+
+\twocolumn[
+\bigskip
+\centerline{\Large \bf \name: Scalable Adaptation of Video Analytics}
+\medskip
+\centerline{\Large \bf via Temporal \& Cross-camera Correlations}
+\smallskip
+\bigskip
+\centerline{\normalsize PaperID: 258}
+\bigskip\bigskip
+ ]
+ 
+%\title{\name: Scalable Adaptation of Video Analytics via\\ Temporal \& Cross-camera Correlations}
+%\\~\\ \normalsize{PaperID: 258}}
+%\author{\thistime, \today}
+
+
+%\author{\normalsize{PaperID: 258}}
+
+%\author{Paper \# 322}
+%\date{\today}
+%\author{\date{\thistime, \today}}
+%\author{
+%{ Junchen Jiang$^\dagger$, Vyas Sekar$^\dagger$, Henry Milner$^\star$, Davis Shepherd$^+$, Ion Stoica$^\star$$^+$$^\circ$,
+% Hui Zhang$^\dagger$$^+$}
+%\\ { $^\dagger$CMU, $^\star$UC Berkeley, $^+$Conviva, $^\circ$Databricks}
+%\\ {\small PaperId: 302}
+%}
+%\maketitle
+\begin{abstract}
+
+Applying deep convolutional neural networks (\nn) to video data at 
+scale poses a substantial systems challenge, as improving inference
+accuracy often requires a prohibitive cost in computational resources.
+While it is promising to balance resource and accuracy by selecting
+a suitable \nn configurations (\eg the resolution and frame rate
+of the input video), one must also address the significant {\em dynamics}
+of \nn configuration's impact on video analytics accuracy.
+We present \name, a controller that dynamically picks the best
+configurations for existing \nn-based video analytics pipelines.
+The key challenge in \name is that in theory, adapting configurations
+frequently can reduce resource consumption with little degradation
+in accuracy, but searching a large space of configurations periodically
+incurs an overwhelming resource overhead that negates the gains of adaptation.
+The insight behind \name is that the underlying characteristics 
+(\eg the velocity and sizes of objects) that affect the best
+configuration have enough {\em temporal and spatial correlation} to 
+allow the search cost to be amortized over time and across multiple 
+video feeds.
+% (1) Unlike previous work that picks \nn configurations at coarse 
+% timescales, \name continuously profiles the resource-accuracy 
+% tradeoffs under various configurations, and switch the \nn 
+% configuration whenever a better configuration is identified. 
+% %yields similar
+% %accuracy with less resources, or better accuracy with similar 
+% %resources.
+% (2) Rather than optimizing video feeds and queries individually, 
+% \name reduces the cost of profiling \nn configurations 
+% by grouping many camera feeds with spatial correlations, as well 
+% as leveraging the relative temporal persistence of \nn's performance.
+Using the video feeds of five traffic cameras, we demonstrate that compared to a baseline that picks the optimal configuration offline,
+\name can achieve 20-50\% higher accuracy with the same amount of resource, or achieve the same accuracy with only 30-50\% resource (or 2-3$\times$ speedup).
+
+
+
+\end{abstract}
+
+\input{intro}
+
+\input{motivation}
+
+\input{potential}
+
+\input{insights}
+
+\input{algorithm}
+
+\input{eval}
+
+\input{related}
+
+\input{conclusion}
+
+\comment{
+\color{red}{
+Please indicate which section you are editing right now. 
+\begin{itemize}
+    \item Section 1: 
+    \item Section 2: 
+    \item Section 3: Sid
+    \item Section 4: 
+    \item Section 5: Ganesh (?)
+    \item Section 6: Junchen / Peter
+    \item Section 7: Peter (?)
+\end{itemize}
+}
+
+TODO items:
+\begin{packeditemize}
+\item change ``adapting \nn configurations'' to ``adapting computer vision pipeline''?
+\item add a subsection on switching cost
+\item mention smoothing as part of the pipeline
+\item replacing NN config with another word
+\item change the motivation in intro
+\end{packeditemize}
+}
+
+
+
+
+
+
+\newpage
+
+{%\footnotesize
+\bibliographystyle{abbrv}
+\bibliography{reference}
+}
+
+
+%\appendix
+
+
+%\input{concerns}
+
+
+\end{document}
+

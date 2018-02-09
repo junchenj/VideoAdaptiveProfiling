@@ -1,0 +1,46 @@
+\section{Incremental updates}
+\label{sec:transfer}
+
+Despite the improvement by online profiling and cross-video inference
+the cost of periodic profiling can still overwhelm the gain of adapting
+configurations, when the update granularity is very fine-grained 
+temporally (every several seconds) or spatially (no identical camera to
+share the cost).
+Such overhead is because so far we have assumed that the temporal 
+correlation (between update intervals) and spatial correlation (across
+videos) are binary: if they are identical, we will reuse the best 
+configuration, but otherwise, we will profile the configurations from
+scratch, which can introduce a substantial overhead.
+
+The last technique in \name addresses this limitation by a more nuanced
+model of spatial and temporal correlations between video feeds in 
+different time windows, so that even if the best configuration learned 
+for a video feed is not to be reused, we can use its performance profile
+to guide the re-profiling of another video feed or different time
+window, thus incrementally update the configurations, rather than from
+scratch.
+
+\begin{algorithm}[t!]
+    \small
+	\DontPrintSemicolon
+    \SetKwFunction{IncrementalUpdate}{IncrementalOnlineProfiling}
+    \SetKwProg{Fn}{Function}{:}{}
+	\KwIn{The best configuration $c^{other}$ learned from a similar video feed or recent history time window, a set of frames $X$ for profiling, the accuracy threshold $\alpha$, and a set of potential values $V_k$ of each knob $k$ of which the most expensive value is $v_k^*$.
+	}
+    \KwOut{The configuration $\hat{c}=(\hat{v_1},\dots,\hat{v_n})$ to be used until the next update}
+    \Fn{\IncrementalUpdate{$M_i, T_j, C, \alpha, c^{other}$}}{
+        $X\leftarrow I(M_i, T_j)$
+        \If{$F(X,c^{other},c^*)>\alpha$}{
+        \tcc{\small{$c^{other}$ is likely an overkill. Use cheaper configs}}
+            $C^{lower}\leftarrow\{c\in C | R(c) \leq R(c^{other})\}$\\
+            $\hat{c}_{M_i,T_j}\leftarrow${\ProfilingUnit($X, C^{lower}, \alpha$)}
+        }\Else{ 
+        \tcc{\small{$c^{other}$ is too inaccurate. Use more expensive configs}}
+            $C^{higher}\leftarrow\{c\in C | R(c) \leq R(c^{other})\}$\\
+            $\hat{c}_{M_i,T_j}\leftarrow${\ProfilingUnit($X, C^{higher}, \alpha$)}
+        }
+        \Return{$\hat{c}\leftarrow(\hat{v_1},\dots,\hat{v_n})$}
+    }
+	\caption{Policy 3: Online Profiling.}
+	\label{alg:policy3}
+\end{algorithm}

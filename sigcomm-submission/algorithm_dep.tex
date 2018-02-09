@@ -1,0 +1,266 @@
+\section{Key techniques of \name}
+\label{sec:algorithm}
+This section presents the key techniques in \name.
+
+\subsection{Overview}
+
+We begin by outlining the key components in \name to leverage the 
+spatial and temporal correlations in practice. 
+\name splits all available video feeds into {\em segments}, each 
+of which is a set of frames of a video feed in a fine-grained 
+(e.g., one-second) interval. 
+The \nn configurations, however, do not need to be re-profiled 
+and updated on a per segment basis.
+Instead, the temporal and spatial correlation suggests that the 
+best configuration(s) of one segment can be used to ``guide'' the
+of the best configuration of the future segments of the same video 
+and similar videos.
+% Moreover, the spatial correlation suggests that the set of best
+% configurations of one segment should be can guide the selection of
+% the best configuration of the segments of a similar video feed.
+% Therefore,
+Naturally, the design of \name is set to answer two questions:
+\begin{packeditemize}
+\item {\em How to transfer profiles learned in one time window to 
+another?}
+\item {\em How to transfer profiles learned on one video to another?}
+%\item {\em How to efficiently profile the configuration space?}
+\end{packeditemize}
+
+The key to their answers is a cost-efficient way of checking 
+whether one-segment's best configuration is good enough for 
+another segment without running any additional configurations.
+The idea here is to use the confidence associated with each 
+detected objects, and establish a correlation between the 
+confidence (which is available instantly and for free) and the
+accuracy (real feedback) just barely strong enough to indicate
+whether the  detected objects, with their confidence, has 
+accuracy over the accuracy threshold. 
+
+As outlined in Figure~\ref{??}, we can then use this light-weight
+checking on accuracy to decide whether we should re-use the 
+best configuration from the last segment of the same video, or 
+select from the best configurations from a similar video.
+Finally, we still need to re-profile the configuration space 
+once in a while (every tens of seconds) for at least one of the 
+similar video feeds, and an exhaustive search in the 
+configuration space will still blow up the cost. 
+\name address this issue by profiling each knobs separately 
+since these knobs often appear to be independent, thus reducing
+the exponential cost to a linear one.
+
+
+\subsection{Light-weight checking on accuracy}
+As shown in the last section, to key to spatially and temporally 
+transferring best configurations from one segment to another is 
+the ability to check their accuracy in the new segments without
+running additional configurations.
+Doing this is not trivial, though, because testing the accuracy of
+a configuration requires running a more expensive golden 
+configuration.
+
+%\mypara{Confidence vs. accuracy}
+To address it, our insight is that the confidence associated with
+each detected objects (available instantly and for free) are 
+indicative barely enough to detect dramatic changes in accuracy.
+Due to the natural of \nn models, most detected objects have a 
+very small confidence, so for each configuration, we train a 
+confidence threshold offline so that the mean of confidence values 
+above the threshold is indicative of accuracy.
+Figure~\ref{??} shows for a given configuration, how likely the
+accuracy drops for over $x\%$ if we see the mean confidence of
+the detected objects drops by $x\%$. 
+Though the correlation is not perfect, it is indicative.
+
+We acknowledge two caveats in using confidence. 
+(1) In general, the confidence values are not always available 
+in the output of any machine learning models, though they are 
+common in convolutional \nn models.
+(2) Confidence values indicate how likely a detected object
+is correct, i.e., the precision, and correlate weakly with how 
+likely an object is missed, i.e., recall.
+In particular, confidence will not indicate when frame rate is
+too low that some objects do not show up in the sampled frames.
+We will address this problem in the end of this section.
+Despite these limitations, we found confidence values serving us
+well as a light-weight indicator of accuracy (and prior work has
+used it in similar ways~\cite{noscope}).
+
+
+\subsection{Incremental update over time}
+Now that we can test accuracy of any given configuration, it is
+straightforward to check if the best configuration of the 
+previous segment can be re-used or a re-profiling (\S\ref{??})
+needs to be triggered to update the decision.
+Specifically, \name periodically re-profile the configuration 
+space. 
+For a segment $s'$ between two periodic profiling events, 
+suppose $c$ is the configuration of the previous
+segment $s$, and $h$ is the mean confidence of the detected 
+objects. 
+Our goal is to maintain a stable level of confidence; if the 
+confidence in the current segment $h'$ is neither $\beta\%$ lower 
+nor $\beta\%$ higher than $h$, then we reuse $c$ in the current
+segment. 
+Otherwise, we will trigger a re-profiling of the configuration 
+space.
+\jc{add the code here?}
+
+\subsection{Cross-video inference}
+If we know when and which video feeds have identical 
+resource-accuracy tradeoffs, we can simply apply the best 
+configuration learned on one video feed to other video feeds, 
+and get a linear reduction in profiling cost. 
+In practice, however, the relationship between configuration 
+and the resulting accuracy can be very complex (partly due to 
+a lack of interpretability of the deep \nn models), so it is
+difficult to predict whether two videos should share best
+configurations.
+Instead, \name identifies similar cameras by profiling the
+performance of the same set of configuration on all video 
+feeds, and groups the videos such that any two videos in the
+same group should have similar average accuracy for each of
+these configurations.
+% We present this idea in Algorithm~\ref{alg:??}. 
+%\jc{explain the algorithm a bit}
+\jc{add what cheap configurations to use}
+Because the grouping of cameras focus on the {\em distributions}
+of properties such as object velocity or sizes, which changes
+slowly, \name groups the video feeds at a coarse timescale of 
+several hours.
+
+\name optimizes configurations for each group of video feeds.
+In each group, one video feed is randomly picked as the {\em 
+leader}, and it will be treated differently to other 
+videos, called {\em followers}, in the group. 
+The leader does not use information from followers in the same
+group to avoid circularity.
+The leader is re-profiled periodically and when confidence 
+changes dramatically (\S\ref{??}).
+A follower behaves the same as a leader, except that instead of
+reprofiling a large configuration space, when confidence 
+changes dramatically, a follower will do the following:
+(1) it first retrieves from its leader 
+the list of best configurations $(c_1,\dots,c_m)$ (and the 
+confidence value $h_i$ of $c_i$ for the leader) in near history
+(by default, \fillme seconds), and then picks from this list 
+the cheapest $c$ whose confidence in the follower's segment 
+$h_i'$ is neither $\beta\%$ higher nor $\beta\%$ lower than 
+$h_i$.
+The intuition is that $c$ should strike a similar 
+resource-accuracy tradeoff in the follower video as in the 
+leader video.
+\jc{add the code here}
+
+
+
+\subsection{Reducing configuration spaces}
+\name re-profiles the configuration space periodically or
+whenever the confidence value changes dramatically.
+While this happens relatively infrequently, its cost may
+still induce a significant overhead to resource consumption,
+especially if the amount of all possible configurations grows
+exponentially with more knobs.
+Instead of profiling the performance of a high 
+dimensional configuration space of multiple knobs, \name
+updates one knob at a time while fixing the values on other
+knobs.
+By treating the knobs separately, we can reduce the 
+re-profiling cost from $O(n^k)$ (an exhaustive search in $k$
+knobs each having $n$ values) to $O(n\cdot k)$.
+
+%\mypara{Independence among knobs}
+Our insight is that 
+for each knob, the relationship between its value and inference 
+accuracy is independent to the setting on other knobs. 
+That is, for instance, if 5fps is the least frame rate to get an F1 
+score of 0.8 when the frame size is 960p, then 5fps will be the
+least frame rate to attain an F1 score of 0.8 when the frame size 
+is 480p.
+The intuition behind the independence between knobs is that the 
+impact of these knobs on accuracy is determined by {\em orthogonal} 
+factors. 
+For instance, in pipeline $A$, the frame rate concerns the object
+moving speed, image sizes concerns the number of pixels to cover 
+each object of interest, and the object detection model depends on 
+whether the shape of an object can be expressed by the extracted 
+features.
+This allows us to profile knobs separately, and safely ignore the 
+combinational effects between knobs.
+
+\begin{algorithm}[t!]
+\small
+	\DontPrintSemicolon
+    \SetKwFunction{Overall}{ConfigAdaptation}
+    \SetKwFunction{ProfilingUnit}{Profile}
+    \SetKwProg{Fn}{Function}{:}{}
+	\KwIn{$n$ video feed $M_1,\dots,M_n$, the accuracy threshold $\alpha$, and all possible configurations $C$, each being a combination of values on $k$ knobs, where $V_k$ and $v_k^*$ are the values of knob $k$ and its most expensive value.}
+	\KwOut{Configuration $\hat{c}_{M_i,T_j}$ for video $M_i$ in time window $T_j$.}
+% 	\Fn{\Overall{$\{M_1,\dots,M_n\}, C, \alpha$}}{
+%         \ForEach{$j$-th $T$-second time window $T_j$}{
+%     	    \ForEach{$M_i$}{
+%         	    $X_{i,j}\leftarrow I(M_i,t_j)$\\
+%         	    $\hat{c_{M_i,T_j}}\leftarrow \ProfilingUnit(X_{i,j},C,\alpha)$\\
+%         	}
+%     	}
+%     	\Return{$\hat{c}_{M_i,T_j}$ for all $M_i$ and $T_j$}
+% 	}
+    \Fn{\ProfilingUnit{$X, C, \alpha$}}{
+        $c^{default}=(v_1^{default},\dots,v_m^{default})$\\
+        \tcc{\small{Optimize one knob at a time}}
+        \ForEach{Knob $k$}{
+            $R_{min}\leftarrow\infty$; $A_{best}\leftarrow 1$\\
+            \ForEach{$v_k\in V_k$}{
+                \tcc{\small{Change only knob $k$ to $v_k$}}
+                $c(v_k)\leftarrow Replace(c^{default},k,v_k)$\\
+                $c(v_k^*)\leftarrow Replace(c^{default},k,v_k^*)$\\
+                $A\leftarrow F(X,c(v_k),c(v_k^*))$\\
+                \tcc{\small{Set knob $k$ to $v$, if $v$ is cheaper and is accurate enough}}
+                \If{$R(c(v_k)) < R_{min}$ \textrm{\bf and} $A \geq \alpha$}{
+                    $\hat{v_k}\leftarrow v$; $R_{min}\leftarrow R(c(v_k))$; $A_{best}\leftarrow A$\\
+                }
+            }
+            \tcc{\small{Update the accuracy threshold}}
+            $\alpha=\frac{\alpha}{A_{best}}$
+        }
+        \Return{$\hat{c}\leftarrow(\hat{v_1},\dots,\hat{v_n})$}
+    }
+	\caption{Profiling configuration knobs separately.}
+	\label{alg:policy3}
+\end{algorithm}
+
+%\mypara{Profiling knobs separately}
+Algorithm~\ref{alg:policy3} describes how \name profiles the knobs
+separately. 
+Let $Replace(C,k,v)$ denote the result of setting knob $k$ of $C$ 
+with $v$, and $F(X,c,c^*)=\frac{1}{|X|}\sum_{x\in X}f(x,c,c^*)$ 
+denote the average F1 score of $c$ with respect to $c^*$ over a 
+set of frames $X$.
+For every $T$ seconds, it re-profiles and updates the 
+configurations on the frames in the first $t$ seconds.
+For each knob $k$, it tries all of its possible values while 
+fixing other knobs to their default values $C(v_k)$, and calculate
+the accuracy with respect to setting knob $k$ to its most 
+expensive values as the golden
+configuration $C(v_k^*)$ (line~5-7). 
+This allow us to identify the ``sweet spot'' value of knob $k$ 
+that has least resource consumption while achieving enough 
+accuracy (line~8-9).
+Finally, since the accuracy degradation of individual knobs will 
+be accrued when combining them together, we increase the accuracy 
+threshold after each knob is updated (line~10).
+% Given a configuration $C$, configuration 
+% $C'=C\setminus\{v_k\}\cup \{v_k^*\}$ has the same values to $C$ except for the $k$-th knob, on which $C$ has $v_k$ and $C^*$ has $v_k^*$.
+There are two more details in online profiling.
+First, for some knobs (e.g., frame rate, minimal area size), a
+lower value has no profiling cost, if a higher value has been
+profiled, because the output of the lower value can be extrapolated
+from the output of a higher values (e.g., for frame rate, it means
+simply ignoring frames in the higher frame rate output).
+Second, Policy~3 depends on the default values, though different
+settings of default values only yield marginal performance 
+difference.~\footnote{We notice that such independence would be 
+weakened in extreme cases; e.g., it is hard to profile the accuracy
+of different frame rates, under too small an image size, as no \nn
+would detect any objects. So when profiling a certain knob, other
+knobs are not set to such extreme values.}
