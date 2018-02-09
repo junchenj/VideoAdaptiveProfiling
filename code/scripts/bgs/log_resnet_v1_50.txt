@@ -1,0 +1,12 @@
+CV2 version: 3.4.0
+(720, 1280, 3)
+***********************************
+Extraction:	/home/junchenj/workspace/scripts/bgs/output_new/log.txt
+Images path:	/home/junchenj/workspace/scripts/bgs/output_new/images/
+Output file:	/home/junchenj/workspace/scripts/bgs/output_new/predictions.txt
+Model name:	resnet_v1_50
+***********************************
+Start downloading
+()
+('Successfully downloaded', 'resnet_v1_50_2016_08_28.tar.gz', 95073259, 'bytes.')
+out-000081.jpg

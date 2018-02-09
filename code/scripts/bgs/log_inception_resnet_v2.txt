@@ -1,0 +1,291 @@
+CV2 version: 3.4.0
+(720, 1280, 3)
+***********************************
+Extraction:	/home/junchenj/workspace/scripts/bgs/output_new/log.txt
+Images path:	/home/junchenj/workspace/scripts/bgs/output_new/images/
+Output file:	/home/junchenj/workspace/scripts/bgs/output_new/predictions.txt
+Model name:	inception_resnet_v2
+***********************************
+Start downloading
+()
+('Successfully downloaded', 'inception_resnet_v2_2016_08_30.tar.gz', 220632346, 'bytes.')
+out-000081.jpg
+batch processing: 400
+Preparation: 4.32401609421 seconds
+Prediction2.1: 2.09808349609e-05 seconds
+Prediction2.2: 4.58176493645 seconds
+Prediction2.3: 1.93760490417 seconds
+Prediction2.4: 2.37767100334 seconds
+Prediction2.5: 0.000679016113281 seconds
+Prediction: 21.5911610126 seconds
+out-000392.jpg
+batch processing: 403
+Preparation: 7.26799798012 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.55076122284 seconds
+Prediction2.3: 2.00435400009 seconds
+Prediction2.4: 2.06908297539 seconds
+Prediction2.5: 0.000656127929688 seconds
+Prediction: 21.606443882 seconds
+out-000477.jpg
+batch processing: 400
+Preparation: 4.74389696121 seconds
+Prediction2.1: 2.19345092773e-05 seconds
+Prediction2.2: 4.50156497955 seconds
+Prediction2.3: 1.93307995796 seconds
+Prediction2.4: 1.79542899132 seconds
+Prediction2.5: 0.000695943832397 seconds
+Prediction: 12.3712420464 seconds
+out-000609.jpg
+batch processing: 402
+Preparation: 5.23772406578 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.50593400002 seconds
+Prediction2.3: 1.94548106194 seconds
+Prediction2.4: 1.92173480988 seconds
+Prediction2.5: 0.000657081604004 seconds
+Prediction: 21.7278170586 seconds
+out-000719.jpg
+batch processing: 400
+Preparation: 4.968927145 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.74999809265 seconds
+Prediction2.3: 1.71491384506 seconds
+Prediction2.4: 1.90182495117 seconds
+Prediction2.5: 0.000653982162476 seconds
+Prediction: 13.0891680717 seconds
+out-000858.jpg
+batch processing: 400
+Preparation: 5.35283923149 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.64226198196 seconds
+Prediction2.3: 1.89792084694 seconds
+Prediction2.4: 1.86389899254 seconds
+Prediction2.5: 0.000651121139526 seconds
+Prediction: 13.4594519138 seconds
+out-000984.jpg
+batch processing: 400
+Preparation: 5.15515589714 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.52772188187 seconds
+Prediction2.3: 1.90295290947 seconds
+Prediction2.4: 1.95903301239 seconds
+Prediction2.5: 0.000653028488159 seconds
+Prediction: 13.2634940147 seconds
+out-001094.jpg
+batch processing: 403
+Preparation: 5.04563093185 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.54521894455 seconds
+Prediction2.3: 1.94850683212 seconds
+Prediction2.4: 1.88104605675 seconds
+Prediction2.5: 0.000684022903442 seconds
+Prediction: 13.1321630478 seconds
+out-001232.jpg
+batch processing: 400
+Preparation: 5.28749704361 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.60592103004 seconds
+Prediction2.3: 1.95817399025 seconds
+Prediction2.4: 1.85689783096 seconds
+Prediction2.5: 0.000669956207275 seconds
+Prediction: 13.4286267757 seconds
+out-001338.jpg
+batch processing: 402
+Preparation: 4.94066095352 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.59452700615 seconds
+Prediction2.3: 1.98054480553 seconds
+Prediction2.4: 1.84463715553 seconds
+Prediction2.5: 0.000664949417114 seconds
+Prediction: 13.0270369053 seconds
+out-001492.jpg
+batch processing: 403
+Preparation: 5.59949803352 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.52379393578 seconds
+Prediction2.3: 1.94791793823 seconds
+Prediction2.4: 1.82499289513 seconds
+Prediction2.5: 0.000683069229126 seconds
+Prediction: 13.7568800449 seconds
+out-001788.jpg
+batch processing: 402
+Preparation: 7.2970969677 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.63116383553 seconds
+Prediction2.3: 2.03176808357 seconds
+Prediction2.4: 2.03843307495 seconds
+Prediction2.5: 0.000657081604004 seconds
+Prediction: 15.035820961 seconds
+out-002235.jpg
+batch processing: 405
+Preparation: 8.97443604469 seconds
+Prediction2.1: 1.97887420654e-05 seconds
+Prediction2.2: 4.67529606819 seconds
+Prediction2.3: 1.73731184006 seconds
+Prediction2.4: 2.0696811676 seconds
+Prediction2.5: 0.0010871887207 seconds
+Prediction: 21.1137158871 seconds
+out-002319.jpg
+batch processing: 402
+Preparation: 4.76410508156 seconds
+Prediction2.1: 2.121925354e-05 seconds
+Prediction2.2: 4.69014501572 seconds
+Prediction2.3: 1.99933600426 seconds
+Prediction2.4: 1.82936000824 seconds
+Prediction2.5: 0.000656843185425 seconds
+Prediction: 12.8607540131 seconds
+out-002449.jpg
+batch processing: 401
+Preparation: 5.05455088615 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.70231294632 seconds
+Prediction2.3: 1.99086594582 seconds
+Prediction2.4: 1.84337592125 seconds
+Prediction2.5: 0.000668048858643 seconds
+Prediction: 21.51207304 seconds
+out-002690.jpg
+batch processing: 401
+Preparation: 6.61515784264 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.85733985901 seconds
+Prediction2.3: 1.76412701607 seconds
+Prediction2.4: 1.91297411919 seconds
+Prediction2.5: 0.000669002532959 seconds
+Prediction: 13.7967469692 seconds
+out-002779.jpg
+batch processing: 405
+Preparation: 4.64047193527 seconds
+Prediction2.1: 2.09808349609e-05 seconds
+Prediction2.2: 4.67252802849 seconds
+Prediction2.3: 1.92773795128 seconds
+Prediction2.4: 1.75184512138 seconds
+Prediction2.5: 0.000668048858643 seconds
+Prediction: 12.9658620358 seconds
+out-002847.jpg
+batch processing: 401
+Preparation: 4.37358307838 seconds
+Prediction2.1: 1.8835067749e-05 seconds
+Prediction2.2: 4.51009106636 seconds
+Prediction2.3: 1.94722604752 seconds
+Prediction2.4: 1.78991985321 seconds
+Prediction2.5: 0.000684976577759 seconds
+Prediction: 12.6747400761 seconds
+out-002939.jpg
+batch processing: 403
+Preparation: 4.81464505196 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.52462100983 seconds
+Prediction2.3: 1.95348405838 seconds
+Prediction2.4: 1.78538489342 seconds
+Prediction2.5: 0.000654935836792 seconds
+Prediction: 12.9283571243 seconds
+out-003037.jpg
+batch processing: 401
+Preparation: 4.72222089767 seconds
+Prediction2.1: 2.09808349609e-05 seconds
+Prediction2.2: 4.63642287254 seconds
+Prediction2.3: 1.67412805557 seconds
+Prediction2.4: 2.14339494705 seconds
+Prediction2.5: 0.000659942626953 seconds
+Prediction: 13.0498609543 seconds
+out-003234.jpg
+batch processing: 401
+Preparation: 5.86999702454 seconds
+Prediction2.1: 1.8835067749e-05 seconds
+Prediction2.2: 4.53389191628 seconds
+Prediction2.3: 1.97925305367 seconds
+Prediction2.4: 1.8725938797 seconds
+Prediction2.5: 0.000663995742798 seconds
+Prediction: 14.113394022 seconds
+out-003327.jpg
+batch processing: 401
+Preparation: 4.94548201561 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.60303616524 seconds
+Prediction2.3: 1.97316002846 seconds
+Prediction2.4: 1.8367869854 seconds
+Prediction2.5: 0.000664949417114 seconds
+Prediction: 13.0022120476 seconds
+out-003446.jpg
+batch processing: 401
+Preparation: 5.15052294731 seconds
+Prediction2.1: 2.09808349609e-05 seconds
+Prediction2.2: 4.55347299576 seconds
+Prediction2.3: 1.96284198761 seconds
+Prediction2.4: 1.75516986847 seconds
+Prediction2.5: 0.000663042068481 seconds
+Prediction: 13.1681871414 seconds
+out-003578.jpg
+batch processing: 400
+Preparation: 5.22813081741 seconds
+Prediction2.1: 2.19345092773e-05 seconds
+Prediction2.2: 4.49405503273 seconds
+Prediction2.3: 2.02877402306 seconds
+Prediction2.4: 1.86363911629 seconds
+Prediction2.5: 0.000666856765747 seconds
+Prediction: 13.3305561543 seconds
+out-003763.jpg
+batch processing: 403
+Preparation: 5.67696714401 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.73963904381 seconds
+Prediction2.3: 1.70255088806 seconds
+Prediction2.4: 1.8655769825 seconds
+Prediction2.5: 0.000669956207275 seconds
+Prediction: 13.9269738197 seconds
+out-003926.jpg
+batch processing: 401
+Preparation: 5.78540682793 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.53946995735 seconds
+Prediction2.3: 1.94968414307 seconds
+Prediction2.4: 1.80186486244 seconds
+Prediction2.5: 0.000657081604004 seconds
+Prediction: 13.7229669094 seconds
+out-004077.jpg
+batch processing: 405
+Preparation: 5.36306786537 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.56663894653 seconds
+Prediction2.3: 1.92586112022 seconds
+Prediction2.4: 1.85195398331 seconds
+Prediction2.5: 0.00067400932312 seconds
+Prediction: 13.6509530544 seconds
+out-004163.jpg
+batch processing: 402
+Preparation: 4.84112095833 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.60890197754 seconds
+Prediction2.3: 2.02442884445 seconds
+Prediction2.4: 1.88160514832 seconds
+Prediction2.5: 0.000651836395264 seconds
+Prediction: 12.807459116 seconds
+out-004260.jpg
+batch processing: 403
+Preparation: 4.78240513802 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.49676990509 seconds
+Prediction2.3: 1.93500089645 seconds
+Prediction2.4: 1.75322699547 seconds
+Prediction2.5: 0.00065803527832 seconds
+Prediction: 13.0159490108 seconds
+out-004393.jpg
+batch processing: 401
+Preparation: 5.19321107864 seconds
+Prediction2.1: 1.90734863281e-05 seconds
+Prediction2.2: 4.4174451828 seconds
+Prediction2.3: 1.951431036 seconds
+Prediction2.4: 1.8959209919 seconds
+Prediction2.5: 0.00067400932312 seconds
+Prediction: 13.336452961 seconds
+out-004500.jpg
+batch processing: 309
+Preparation: 4.21235990524 seconds
+Prediction2.1: 2.00271606445e-05 seconds
+Prediction2.2: 4.46272301674 seconds
+Prediction2.3: 1.94066405296 seconds
+Prediction2.4: 1.74716496468 seconds
+Prediction2.5: 0.000675916671753 seconds
+Prediction: 17.2469470501 seconds
+Prediction: 907.122563124 seconds
