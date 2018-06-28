@@ -9,13 +9,14 @@ PATH_TO_NEW_MODEL=""
 img_size=""
 frame_rate=""
 model_name=""
+OUTPUT_FILE=""
 
-if [ "$#" -lt 18 ]; then
-	echo "Error: need at least NINE arguments"
+if [ "$#" -lt 20 ]; then
+	echo "Error: need at least TEN arguments"
 	echo "Format: sh cml_preprocess.sh --video PathToOriginalVideo \
 	--start StartTimeStamp --end EndTimeStamp \
 	--frames PathToFrames --model PathToOriginalModel --newmodel PathToNewModel \
-	--size ImageSize --framerate FrameRate --modelname ModelName"
+	--size ImageSize --framerate FrameRate --modelname ModelName --output OutputFile"
 	exit
 fi
 
@@ -25,7 +26,7 @@ while test $# -gt 0; do
 			echo "Format: sh cml_preprocess.sh --video PathToOriginalVideo 
 			--start StartTimeStamp --end EndTimeStamp 
 			--frames PathToFrames --model PathToOriginalModel --newmodel PathToNewModel 
-			--size ImageSize --framerate FrameRate --modelname ModelName"
+			--size ImageSize --framerate FrameRate --modelname ModelName --output OutputFile"
 			echo "options:"
 			echo "-h --help         show brief help"
 			echo "-v --video        path to original video"
@@ -37,6 +38,7 @@ while test $# -gt 0; do
 			echo "-s --size         the new image size"
 			echo "-r --framerate    the new frame rate"
 			echo "-n --modelname    the model name"
+			echo "-o --output       the output file"
 			exit 0
 			;;
 		-v|--video)
@@ -75,6 +77,10 @@ while test $# -gt 0; do
 			model_name=$2
 			shift
 			;;
+		-o|--output)
+			OUTPUT_FILE=$2
+			shift
+			;;
 		-*)
 			echo "invalid option "$1
 			exit 0
@@ -97,6 +103,7 @@ echo "Path to new model:        "$PATH_TO_NEW_MODEL
 echo "Image size:               "$img_size
 echo "Frame rate:               "$frame_rate
 echo "Model name:               "$model_name
+echo "Output file:              "$OUTPUT_FILE
 echo "**********************************************************************"
 
 PATH_TO_TEMP=/mnt/tmp
@@ -105,8 +112,9 @@ mkdir -p $PATH_TO_TEMP
 
 
 # TRANSFORM VIDEO
-echo "****************** Getting the video segment...\n"
-rm -rf $PATH_TO_FRAMES
+echo "****************** Getting video frames...\n"
+if [ ! -d "$PATH_TO_FRAMES" ]; then
+#rm -rf $PATH_TO_FRAMES
 mkdir -p $PATH_TO_FRAMES
 PATH_TO_SEGMENT=${PATH_TO_TEMP}/segment.mp4
 s_ms=$(( $start_time_ms % 1000 ))
@@ -119,16 +127,20 @@ d_ss=$(((( $dur_time_ms - $d_ms ) % 60000) /1000 ))
 d_mm=$(((( $dur_time_ms - $d_ms - $d_ss * 1000 ) % 3600000 ) / 60000 ))
 d_hh=$(((( $dur_time_ms - $d_ms - $d_ss * 1000 - $d_mm * 60000 )) / 3600000 ))
 echo "****************** Saving segment to "${PATH_TO_SEGMENT}"...\n"
-echo ${s_hh}:${s_mm}:${s_ss}.${s_ms}
-echo ${d_hh}:${d_mm}:${d_ss}.${d_ms}
 #ffmpeg -y -i $PATH_TO_ORIGINAL_VIDEO \
 ffmpeg -loglevel quiet -y -i $PATH_TO_ORIGINAL_VIDEO \
-	-ss ${s_hh}:${s_mm}:${s_ss}.${s_ms} -t ${d_hh}:${d_mm}:${d_ss}.${d_ms} \
-	-c copy $PATH_TO_SEGMENT
+	-ss ${s_hh}:${s_mm}:${s_ss}.${s_ms} \
+	-strict -2 \
+	-t ${d_hh}:${d_mm}:${d_ss}.${d_ms} \
+	$PATH_TO_SEGMENT
+	#-c copy $PATH_TO_SEGMENT
 echo "****************** Saving frames to "${PATH_TO_FRAMES}/"...\n"
 #ffmpeg -y -i $PATH_TO_SEGMENT ${PATH_TO_FRAMES}/Frame_TS_${start_time_ms}_%08d.jpg
 ffmpeg -loglevel quiet -y -i $PATH_TO_SEGMENT ${PATH_TO_FRAMES}/Frame_TS_${start_time_ms}_%08d.jpg
 #rm $PATH_TO_SEGMENT
+else
+echo "****************** PATH_TO_FRAMES already exists: \n"${PATH_TO_FRAMES}" \n"
+fi
 echo "****************** Done ******************\n\n\n"
 
 
@@ -162,6 +174,8 @@ python export_inference_graph.py --input_type image_tensor \
 	--pipeline_config_path $PATH_TO_TMPCONFIG \
 	--trained_checkpoint_prefix ${PATH_TO_ORIGINAL_MODEL}/model.ckpt \
 	--output_directory ${PATH_TO_NEW_MODEL}
+else
+echo "****************** PATH_TO_NEW_MODEL already exists: \n"${PATH_TO_NEW_MODEL}" \n"
 fi
 echo "****************** Done ****************** \n\n\n"
 
@@ -169,9 +183,16 @@ echo "****************** Done ****************** \n\n\n"
 
 
 # ACTUAL INFERENCE
-echo "****************** Start inference... \n"
-python cml_inference.py --tfpath ~/workspace/tensorflow/models/ \
-	--frames $PATH_TO_FRAMES --output /home/junchenj/workspace/scripts/chameleon/result.txt \
-	--modelpath $PATH_TO_NEW_MODEL \
-	--modelname $model_name --framerate $frame_rate --size $img_size
-echo "****************** Done ****************** \n\n\n"
+#echo "****************** Start inference... \n"
+if [ ! -d "$(dirname "$OUTPUT_FILE")" ]; then
+mkdir -p "$(dirname "$OUTPUT_FILE")"
+fi
+#if [ ! -d "$OUTPUT_FILE" ]; then
+#touch $OUTPUT_FILE
+#python cml_inference.py --tfpath ~/workspace/tensorflow/models/ \
+#	--frames $PATH_TO_FRAMES --output $OUTPUT_FILE \
+#	--modelpath $PATH_TO_NEW_MODEL \
+#	--modelname $model_name --framerate $frame_rate --size $img_size \
+#	--showframes False
+#fi
+#echo "****************** Done ****************** \n\n\n"
